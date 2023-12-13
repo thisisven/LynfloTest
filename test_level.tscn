@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://d0lj48r5t4f7r"]
+
+[ext_resource type="Texture2D" uid="uid://x64n77kvp3tf" path="res://Backgrounds/Grass.png" id="1_06qyv"]
+[ext_resource type="PackedScene" uid="uid://b1dohpnr35fo2" path="res://Characters/Player.tscn" id="2_r1lqk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x0a3i"]
+size = Vector2(1162, 162)
+
+[node name="TestLevel" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(574.297, 322.75)
+scale = Vector2(7.65294, 7.65294)
+texture = ExtResource("1_06qyv")
+
+[node name="Player" parent="." instance=ExtResource("2_r1lqk")]
+position = Vector2(240, 528)
+scale = Vector2(6, 6)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(0, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(571, 71)
+shape = SubResource("RectangleShape2D_x0a3i")

@@ -8,8 +8,7 @@ signal player_died
 
 @export var maxHealth = 4
 @onready var currentHealth: int = maxHealth
-@export var speed : float = 120.0
-@onready var facing : int = 1 #1 for right, 0 for left.
+@export var speed : float = 180.0
 
 #Variables regarding player health and damage.
 @export var invincible : bool = false
@@ -18,17 +17,17 @@ signal player_died
 @export var hurtbox : Area2D
 
 #Controlled jumping variables
-@export var maxJumpForceinWater = -60
-@export var maxJumpForce = -110
-@export var jumpForceDefault : float = -85
+@export var maxJumpForce = -600
+@export var jumpForceDefault : float = -500
 @onready var jumpForce = jumpForceDefault
 @export var jump_control : bool = false
 @export var jumpmultiplier : float = 1.2
 @export var jumptimer : Timer 
 @export var jumping = false
 
-#Game specific variables
-@export var vspeedlimit : int = 500
+#Game gravity specific variables
+@export var vspeedlimit : int = 800
+@export var gravity = 1000
 
 #Animation variables
 @onready var jump : String = "jump"
@@ -44,46 +43,14 @@ signal player_died
 
 # Setting up animations.
 @export var animated_sprite : AnimatedSprite2D
+@onready var facing : int = 1 #1 for right, -1 for left.
+signal facing_direction_changed(facing_right : bool)
+var direction : Vector2 = Vector2.ZERO
 
 #Setting up state machine.
 @onready var state = "idle"
 
-#Character Specific Variables
-var bashdamage : float = 20
-var eljay_bash : bool = false
-var meso_specials : bool = false
-var var_gun : bool = false
-var has_shield : bool = false
-@export var sword : bool = false
-var assymetry : bool = false
-var boostjump : bool = false
-@export var summon_able : bool = false
-var can_glide : bool = false
-@onready var bashtimer : Timer = $BashTimer
-@onready var game_control_timer : Timer = $GCTimer
-
-@onready var sprite_ref = 0
-
-signal facing_direction_changed(facing_right : bool)
-
-# Get the gravity from the project settings to be synced with RigidBody nodes.
-var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
-var lockmovement : bool = false
-var animation_locked : bool = false
-var direction : Vector2 = Vector2.ZERO
-var in_air : bool = false
-var attack_done : bool = false
-var gliding : bool = false
-@export var inactive : bool = false
-@onready var running_start : bool = false
-
-@onready var camera : Camera2D = %Camera2D
-
 func _process(delta):
-	
-	#Falling off screen
-	if position.y > camera.limit_bottom:
-		die()
 	
 	#Jump Code
 	if jumptimer.is_stopped():
@@ -98,6 +65,11 @@ func _process(delta):
 			jumpForce = jumpForceDefault
 	if Input.is_action_just_released("jump"):
 		jumping = false
+	if Input.is_action_just_pressed("jump") && is_on_floor():
+		jump_control_execute()
+	
+	update_animation()
+
 func jump_control_execute():
 		jumping = true
 		jumptimer.start()
@@ -106,28 +78,27 @@ func _physics_process(delta):
 	# Add the gravity.
 	if not is_on_floor():
 		velocity.y += gravity * delta
-		in_air = true
+		state = "air"
 	else:
-		if in_air == true:
-			in_air = false
+		if velocity.x == 0:
+			state = "idle"
+		if velocity.x != 0:
+			state = "run"
 	
 	#Locks the vertical speed
 	if velocity.y > vspeedlimit:
 		velocity.y = vspeedlimit
 	
-	# Control whether to move or not to move
-	if lockmovement == false:
-		# Get the input direction and handle the movement/deceleration.
-		# As good practice, you should replace UI actions with custom gameplay actions.
-		direction = Input.get_vector("left", "right", "up", "down")
-		if direction.x != 0:
-			velocity.x = direction.x * speed
-		elif playerhit == false:
-			velocity.x = move_toward(velocity.x, 0, speed)
-		move_and_slide()
-	
-	update_animation()
+	# Get the input direction and handle the movement/deceleration.
+	# As good practice, you should replace UI actions with custom gameplay actions.
+	direction = Input.get_vector("left", "right", "up", "down")
+	if direction.x != 0:
+		velocity.x = direction.x * speed
+	elif playerhit == false:
+		velocity.x = move_toward(velocity.x, 0, speed)
+	move_and_slide()
 	handleCollision()
+	update_facing_direction()
 
 func update_animation():
 	if state == "air":
