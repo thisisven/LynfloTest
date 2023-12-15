@@ -38,6 +38,9 @@ signal player_died
 @onready var attack : String = "attack"
 @onready var death : String = "death"
 
+#Sound effects
+@export var jumpsnd : AudioStreamPlayer2D
+
 # Setting up animations.
 @export var animated_sprite : AnimatedSprite2D
 @onready var facing : int = 1 #1 for right, -1 for left.
@@ -126,11 +129,18 @@ func update_facing_direction():
 	#Updates the facing value for attack states
 	emit_signal("facing_direction_changed", !animated_sprite.flip_h)
 
-#func _on_hurt_box_area_entered(area):
-	#Bustable Walls
-	#if (area.is_in_group("spikes") && area.monitoring == true && invincible == false):
-		#hurt_player(maxHealth,0)
-		
+func _on_hurt_box_area_entered(area):
+	if (area.is_in_group("spikes") && area.monitoring == true && invincible == false):
+		print("player got hurt")
+		hurt_player(maxHealth,0)
+
+func hurt_player(damage : int, knockback_direction):
+	if playerhit ==false && invincible == false:
+		currentHealth -= damage
+		# Local signal for subscribers that only care about this specific
+		# damageable object
+		playerhit = true
+
 func die():
 	emit_signal("player_died")
 	set_collision_layer_value(2, false)
