@@ -140,7 +140,7 @@ func hurt_player(damage : int, knockback_direction):
 		# Local signal for subscribers that only care about this specific
 		# damageable object
 		playerhit = true
-	
+
 func die():
 	emit_signal("player_died")
 	set_collision_layer_value(2, false)
